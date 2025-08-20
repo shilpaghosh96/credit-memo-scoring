@@ -57,7 +57,7 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
     pdf.cell(0, 10, f"Credit Memo: {business_name}", 0, 1, 'C')
     pdf.set_font("Arial", '', 10)
     pdf.cell(0, 10, f"As-of Date: {datetime.now().strftime('%Y-%m-%d')} | Window: {window}", 0, 1, 'C')
-    pdf.ln(8)
+    pdf.ln(4)
     pdf.set_font("Arial", 'B', 12)
     pdf.cell(0, 10, "Summary", 0, 1, 'L')
     pdf.set_fill_color(230, 230, 230)
@@ -72,11 +72,15 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
     def get_flag(metric, value):
         flags = {
             "Days Cash on Hand": '(Pass)' if value >= 15 else '(Watch)',
+            "Median Monthly NOCF": '(Pass)' if value > 0 else '(Watch)',
             "Weekly NCF Variability": '(Pass)' if value < 0.3 else '(Watch)',
             "NSF Count": '(Pass)' if value < 2 else '(Watch)',
             "Returned ACH Count": '(Pass)' if value == 0 else '(Watch)',
             "Vendor Late Proxy (%)": '(Pass)' if value < 35 else '(Watch)',
-            "DSCR Proxy": '(Pass)' if value >= 1.25 else '(Watch)'
+            "DSCR Proxy": '(Pass)' if value >= 1.25 else '(Watch)',
+            "Draw on Credit Ratio (%)": '(Pass)' if value < 20 else '(Watch)',
+            "Top Vendor Share (%)": '(Pass)' if value < 35 else '(Watch)',
+            "% of Days Below Zero": '(Pass)' if value == 0 else '(Watch)'
         }
         return flags.get(metric, '(Pass)')
 
@@ -90,6 +94,10 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
         "Days Cash on Hand": f"{features['days_cash_on_hand']:.1f}",
         "Median Monthly NOCF": f"${features['median_monthly_nocf']:,.0f}",
         "Weekly NCF Variability": f"{features['weekly_net_cashflow_variability']:.2f}",
+        "Annualized Revenue": f"${features['annualized_revenue']:,.0f}",
+        "Draw on Credit Ratio (%)": f"{features['draw_on_credit_ratio']*100:.1f}%",
+        "Top Vendor Share (%)": f"{features['top_vendor_share']*100:.1f}%",
+        "% of Days Below Zero": f"{features['percent_of_days_below_zero']:.1f}%",
         "NSF Count": f"{features['nsf_count']}",
         "Returned ACH Count": f"{features['returned_ach_count']}",
         "Vendor Late Proxy (%)": f"{features['vendor_late_proxy']:.1f}%",
@@ -97,12 +105,18 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
     }
     
     feature_values = {
+        "Avg Daily Balance": features['average_daily_balance'],
+        "Annualized Revenue": features['annualized_revenue'],
         "Days Cash on Hand": features['days_cash_on_hand'],
+        "Median Monthly NOCF": features['median_monthly_nocf'],
         "Weekly NCF Variability": features['weekly_net_cashflow_variability'],
         "NSF Count": features['nsf_count'],
         "Returned ACH Count": features['returned_ach_count'],
         "Vendor Late Proxy (%)": features['vendor_late_proxy'],
-        "DSCR Proxy": features['dscr_proxy']
+        "DSCR Proxy": features['dscr_proxy'],
+        "Draw on Credit Ratio (%)": features['draw_on_credit_ratio'],
+        "Top Vendor Share (%)": features['top_vendor_share'],
+        "% of Days Below Zero": features['percent_of_days_below_zero']
     }
 
     col_width = pdf.w / 2.2
@@ -112,7 +126,6 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
         
         flag = get_flag(metric_name, feature_values.get(metric_name, 0))
         
-        #  CHANGE: Set text color based on the flag 
         if flag == '(Watch)':
             pdf.set_text_color(220, 53, 69)  # Red for Watch
         else:
@@ -120,10 +133,9 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
 
         pdf.cell(col_width, line_height, f"{metric_value_str} {flag}", border=1, ln=1)
         
-        # Reset text color to black for the next row
         pdf.set_text_color(0, 0, 0)
 
-    pdf.ln(8)
+    pdf.ln(4)
 
     # Reason Codes
     pdf.set_font("Arial", 'B', 12)
@@ -134,7 +146,7 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
             pdf.cell(0, 8, f"- {code}", 0, 1)
     else:
         pdf.cell(0, 8, "- N/A", 0, 1)
-    pdf.ln(4)
+    pdf.ln(2)
 
     # Charts
     pdf.set_font("Arial", 'B', 12)
@@ -142,10 +154,9 @@ def create_credit_memo(business_name, window, scorecard, features, output_path, 
     pdf.image(balance_chart_path, x=pdf.get_x() + 5, y=pdf.get_y(), w=90)
     pdf.image(cashflow_chart_path, x=pdf.get_x() + 105, y=pdf.get_y(), w=90)
     
-    pdf.set_y(pdf.get_y() + 60)
-
     # Footer
-    pdf.set_font("Arial", 'I', 8)
+    pdf.set_y(-15)
+    pdf.set_font("Arial", 'I', 7)
     pdf.set_text_color(128)
     pdf.cell(0, 10, "Policy Note: This is an automated credit assessment based on provided cashflow data.", 0, 0, 'C')
     

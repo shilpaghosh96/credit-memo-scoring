@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lender Scorecard</title>
+    <!-- Link to the CSS file for styling -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Lender Scorecard Generator</h1>
+            <p>Upload cashflow files to generate a score, risk grade, and credit memo.</p>
+        </header>
+
+        <!-- The main form for uploading data -->
+        <form id="scorecard-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="business-name">Business Name</label>
+                <input type="text" id="business-name" name="business_name" required placeholder="e.g., Acme Corp">
+            </div>
+
+            <!-- Section for file uploads, split into two columns -->
+            <div class="file-upload-section">
+                <div class="file-group">
+                    <h3>Trailing 3 Months Data</h3>
+                    <label for="bank-tx-3m">Bank Transactions (bank_tx.csv)</label>
+                    <input type="file" id="bank-tx-3m" name="bank_tx_3m" accept=".csv" required>
+
+                    <label for="pnl-monthly-3m">Monthly P&L (pnl_monthly.csv)</label>
+                    <input type="file" id="pnl-monthly-3m" name="pnl_monthly_3m" accept=".csv" required>
+
+                    <label for="vendors-3m">Vendors (vendors.csv, optional)</label>
+                    <input type="file" id="vendors-3m" name="vendors_3m" accept=".csv">
+                </div>
+
+                <div class="file-group">
+                    <h3>Trailing 6 Months Data</h3>
+                    <label for="bank-tx-6m">Bank Transactions (bank_tx.csv)</label>
+                    <input type="file" id="bank-tx-6m" name="bank_tx_6m" accept=".csv" required>
+
+                    <label for="pnl-monthly-6m">Monthly P&L (pnl_monthly.csv)</label>
+                    <input type="file" id="pnl-monthly-6m" name="pnl_monthly_6m" accept=".csv" required>
+
+                    <label for="vendors-6m">Vendors (vendors.csv, optional)</label>
+                    <input type="file" id="vendors-6m" name="vendors_6m" accept=".csv">
+                </div>
+            </div>
+
+            <button type="submit" id="submit-btn">Generate Scorecard</button>
+        </form>
+
+        <!-- This div is for the loading spinner, hidden by default -->
+        <div id="loader" class="hidden"></div>
+
+        <!-- This section will display the results after processing -->
+        <div id="results-section" class="hidden">
+            <h2>Results</h2>
+            <div class="results-comparison">
+                <!-- Results for the 3-month window will be inserted here by JavaScript -->
+                <div id="results-3m" class="result-card"></div>
+                <!-- Results for the 6-month window will be inserted here by JavaScript -->
+                <div id="results-6m" class="result-card"></div>
+            </div>
+        </div>
+        
+        <!-- This section will display any errors that occur -->
+        <div id="error-section" class="hidden"></div>
+    </div>
+
+    <!-- Link to the JavaScript file for interactivity -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
